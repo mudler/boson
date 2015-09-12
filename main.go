@@ -74,18 +74,18 @@ func main() {
 		plugin_registry.Preprocessors[i].OnStart()
 	}
 
-	client := jdb.NewDB("./test.db")
-	var build jdb.Build
-	build.Id = "2"
-	build.Passed = true
-	build.Commit = "test"
-	client.SaveBuild(build)
-	os.Exit(1)
+	// var build jdb.Build
+	// build.Id = "2"
+	// build.Passed = true
+	// build.Commit = "test"
+	// client.SaveBuild(build)
+	// os.Exit(1)
 
 	ticker := time.NewTicker(time.Second * time.Duration(config.PollTime))
 	//go func() {
 	os.MkdirAll(tmpdir, 666)
 	workdir := tmpdir + config.RepositoryStripped
+	client := jdb.NewDB("./" + configurationFile + ".db")
 	for t := range ticker.C {
 		log.Debug("Tick at", t)
 		log.Debug("Cloning " + config.Repository + " to " + workdir)
@@ -95,6 +95,9 @@ func main() {
 			log.Info(utils.Git([]string{"reset", "--hard", "origin/master"}, workdir))
 
 			log.Info("Head now is at " + utils.GitHead(workdir))
+			ContainerArgs, ContainerVolumes := plugin_registry.Preprocessors[config.PreProcessor].Process(workdir, &config, client)
+
+			utils.ContainerDeploy(&config, ContainerArgs, ContainerVolumes)
 			//	deploy(&config, []string{"app-text/tree"})
 		} else { //otherwise simply clone the repo22
 			log.Info(utils.Git([]string{"clone", config.Repository, workdir}, tmpdir))

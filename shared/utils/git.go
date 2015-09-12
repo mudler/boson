@@ -3,6 +3,7 @@ package utils
 import (
 	"os"
 	"os/exec"
+	"strings"
 )
 
 func Git(cmdArgs []string, dir string) (string, error) {
@@ -16,12 +17,12 @@ func Git(cmdArgs []string, dir string) (string, error) {
 	//cmdArgs := []string{"rev-parse", "--verify", "HEAD"}
 	if cmdOut, err = exec.Command(cmdName, cmdArgs...).Output(); err != nil {
 		log.Error("There was an error running git command: ", err)
+		log.Debug(strings.Join(cmdArgs, " "))
 		log.Error(string(cmdOut))
-		return "", err
 	}
 	os.Chdir(cwd)
 	result := string(cmdOut)
-	return result, err
+	return strings.TrimSpace(result), err
 }
 
 func GitHead(workdir string) string {
