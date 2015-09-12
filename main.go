@@ -90,14 +90,17 @@ func main() {
 		log.Debug("Tick at", t)
 		log.Debug("Cloning " + config.Repository + " to " + workdir)
 		if ok, _ := utils.Exists(workdir); ok == true { //if already exists, using fetch && reset
-
+			head := utils.GitHead(workdir)
 			log.Info(utils.Git([]string{"fetch", "--all"}, workdir))
 			log.Info(utils.Git([]string{"reset", "--hard", "origin/master"}, workdir))
 
-			log.Info("Head now is at " + utils.GitHead(workdir))
+			log.Info("Head now is at " + head)
 			ContainerArgs, ContainerVolumes := plugin_registry.Preprocessors[config.PreProcessor].Process(workdir, &config, client)
 
-			utils.ContainerDeploy(&config, ContainerArgs, ContainerVolumes)
+			if ok, _ := utils.ContainerDeploy(&config, ContainerArgs, ContainerVolumes); ok == true {
+				build := jdb.Build{Id: "LATEST_PASSED", Passed: true, Commit: head}
+				client.SaveBuild(build)
+			}
 			//	deploy(&config, []string{"app-text/tree"})
 		} else { //otherwise simply clone the repo22
 			log.Info(utils.Git([]string{"clone", config.Repository, workdir}, tmpdir))
