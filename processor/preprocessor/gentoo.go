@@ -12,10 +12,10 @@ var log = logging.MustGetLogger("boson")
 
 type Gentoo struct{}
 
-func (g *Gentoo) Process(workdir string, config *utils.Config, db *jdb.BuildClient) ([]string, map[string]string) { //returns args and volumes to mount
+func (g *Gentoo) Process(workdir string, config *utils.Config, db *jdb.BuildClient) ([]string, []string) { //returns args and volumes to mount
 
 	var ebuilds []string
-	var volumes = make(map[string]string)
+	var volumes []string
 	build, err := db.GetBuild("LATEST_PASSED")
 	if err != nil {
 		log.Debug("Database returned no result")
@@ -37,7 +37,8 @@ func (g *Gentoo) Process(workdir string, config *utils.Config, db *jdb.BuildClie
 		log.Debug(e)
 	}
 
-	volumes[workdir] = "/usr/local/portage" //my volume dir to mount
+	volumes = append(volumes, workdir+":/usr/local/portage:ro") //my volume dir to mount
+	volumes = append(volumes, config.Artifacts+":/usr/portage/packages")
 	return ebuilds, volumes
 }
 

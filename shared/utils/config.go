@@ -19,6 +19,7 @@ type Config struct {
 	PreProcessor       string `yaml:"preprocessor"`
 	PostProcessor      string `yaml:"postprocessor"`
 	PollTime           int    `yaml:"polltime"`
+	Artifacts          string `yaml:"artifacts_dir"`
 }
 
 //type Options struct {
@@ -44,5 +45,20 @@ func LoadConfig(f string) (Config, error) {
 	config.RepositoryStripped = r.ReplaceAllString(config.Repository, "")
 
 	log.Info("Docker Image: %#v\n", config.DockerImage)
+	if config.Artifacts == "" {
+		log.Fatal("You need to specify 'artifact_dir'")
+	}
+	if config.PreProcessor == "" {
+		log.Fatal("You need to specify a preprocessor 'preprocessors'")
+	}
+	if config.Repository == "" {
+		log.Fatal("You need to specify a repository 'repository'")
+	}
+	if config.DockerImage == "" {
+		log.Fatal("You need to specify a Docker image 'docker_image'")
+	}
+	if config.PollTime == 0 {
+		config.PollTime = 5
+	}
 	return config, err
 }
