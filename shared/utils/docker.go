@@ -23,10 +23,6 @@ func ContainerDeploy(config *Config, args []string, volumes []string) (bool, err
 			Cmd:   args,
 		},
 	})
-	if err != nil {
-		log.Error(err.Error())
-	}
-
 	// Cleanup when done
 	defer func() {
 		client.RemoveContainer(docker.RemoveContainerOptions{
@@ -34,6 +30,10 @@ func ContainerDeploy(config *Config, args []string, volumes []string) (bool, err
 			Force: true,
 		})
 	}()
+	if err != nil {
+		log.Error(err.Error())
+	}
+
 	log.Info("Starting container: " + container.ID)
 	err = client.StartContainer(container.ID, &docker.HostConfig{Binds: volumes})
 

@@ -93,8 +93,13 @@ func main() {
 			head := utils.GitHead(workdir)
 			log.Info(utils.Git([]string{"fetch", "--all"}, workdir))
 			log.Info(utils.Git([]string{"reset", "--hard", "origin/master"}, workdir))
-
+			currentbuild, _ := client.GetBuild("LATEST_PASSED")
 			log.Info("Head now is at " + head)
+			if head == currentbuild.Commit {
+				log.Info("nothing to do")
+				continue
+			}
+
 			ContainerArgs, ContainerVolumes := plugin_registry.Preprocessors[config.PreProcessor].Process(workdir, &config, client)
 
 			if ok, _ := utils.ContainerDeploy(&config, ContainerArgs, ContainerVolumes); ok == true {
