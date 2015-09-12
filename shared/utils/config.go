@@ -46,7 +46,7 @@ func LoadConfig(f string) (Config, error) {
 
 	log.Info("Docker Image: %#v\n", config.DockerImage)
 	if config.Artifacts == "" {
-		log.Fatal("You need to specify 'artifact_dir'")
+		log.Fatal("You need to specify 'artifacts_dir'")
 	}
 	if config.PreProcessor == "" {
 		log.Fatal("You need to specify a preprocessor 'preprocessors'")
