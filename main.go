@@ -86,7 +86,7 @@ func main() {
 	os.MkdirAll(tmpdir, 666)
 	workdir := tmpdir + config.RepositoryStripped
 	client := jdb.NewDB("./" + configurationFile + ".db")
-	for t := range ticker.C {
+	for range ticker.C {
 		log.Debug("Cloning " + config.Repository + " to " + workdir)
 		if ok, _ := utils.Exists(workdir); ok == true { //if already exists, using fetch && reset
 			head := utils.GitHead(workdir)
@@ -113,7 +113,7 @@ func main() {
 				client.SaveBuild(build)
 			}
 			//	deploy(&config, []string{"app-text/tree"})
-		} else { //otherwise simply clone the repo22
+		} else { //otherwise simply clone the repo
 			log.Info(utils.Git([]string{"clone", config.Repository, workdir}, tmpdir))
 		}
 	}

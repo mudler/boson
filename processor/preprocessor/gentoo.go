@@ -5,6 +5,8 @@ import (
 	"github.com/mudler/boson/shared/registry"
 	"github.com/mudler/boson/shared/utils"
 	"github.com/op/go-logging"
+	"io/ioutil"
+	"path/filepath"
 	"strings"
 )
 
@@ -27,9 +29,13 @@ func (g *Gentoo) Process(workdir string, config *utils.Config, db *jdb.BuildClie
 	files := strings.Split(diffs, "\n")
 
 	for _, v := range files {
-		if strings.Contains(v, ".ebuild") { // We just need ebuilds
-			eparts := strings.Split(strings.Replace(v, ".ebuild", "", -1), "/")
-			ebuilds = append(ebuilds, "="+eparts[0]+"/"+eparts[2])
+		filename, _ := filepath.Abs(workdir + "/" + v)
+		_, err := ioutil.ReadFile(filename)
+		if err == nil {
+			if strings.Contains(v, ".ebuild") { // We just need ebuilds
+				eparts := strings.Split(strings.Replace(v, ".ebuild", "", -1), "/")
+				ebuilds = append(ebuilds, "="+eparts[0]+"/"+eparts[2])
+			}
 		}
 	}
 
