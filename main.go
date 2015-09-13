@@ -87,7 +87,6 @@ func main() {
 	workdir := tmpdir + config.RepositoryStripped
 	client := jdb.NewDB("./" + configurationFile + ".db")
 	for t := range ticker.C {
-		log.Debug("Tick at", t)
 		log.Debug("Cloning " + config.Repository + " to " + workdir)
 		if ok, _ := utils.Exists(workdir); ok == true { //if already exists, using fetch && reset
 			head := utils.GitHead(workdir)
@@ -104,6 +103,13 @@ func main() {
 
 			if ok, _ := utils.ContainerDeploy(&config, ContainerArgs, ContainerVolumes); ok == true {
 				build := jdb.Build{Id: "LATEST_PASSED", Passed: true, Commit: head}
+				client.SaveBuild(build)
+				build = jdb.Build{Id: head, Passed: true, Commit: currentbuild.Commit}
+				client.SaveBuild(build)
+			} else {
+				build := jdb.Build{Id: "LATEST_PASSED", Passed: false, Commit: head}
+				client.SaveBuild(build)
+				build = jdb.Build{Id: head, Passed: false, Commit: currentbuild.Commit}
 				client.SaveBuild(build)
 			}
 			//	deploy(&config, []string{"app-text/tree"})
