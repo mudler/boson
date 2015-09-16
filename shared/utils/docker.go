@@ -2,10 +2,36 @@ package utils
 
 import (
 	//"github.com/samalba/dockerclient"
+	"bufio"
 	"github.com/fsouza/go-dockerclient"
+	"io"
 )
 
-func ContainerDeploy(config *Config, args []string, volumes []string) (bool, error) {
+func Attach(client *docker.Client, container *docker.Container) error {
+	r, w := io.Pipe()
+	options := docker.AttachToContainerOptions{
+		Container:    container.ID,
+		OutputStream: w,
+		ErrorStream:  w,
+		Stream:       true,
+		Stdout:       true,
+		Stderr:       true,
+		Logs:         true,
+	}
+	log.Info("Attaching to container " + container.ID)
+	go client.AttachToContainer(options)
+	go func(reader io.Reader, container *docker.Container) {
+		scanner := bufio.NewScanner(reader)
+		for scanner.Scan() {
+			log.Info("%s%s \n", container.ID, scanner.Text())
+		}
+		if err := scanner.Err(); err != nil {
+			log.Error("There was an error with the scanner in attached container", err)
+		}
+	}(r, container)
+	return nil
+}
+func ContainerDeploy(config *Config, args []string, volumes []string, head string) (bool, error) {
 	endpoint := "unix:///var/run/docker.sock"
 	client, _ := docker.NewClient(endpoint)
 	DockerImage := config.DockerImage
@@ -17,14 +43,15 @@ func ContainerDeploy(config *Config, args []string, volumes []string) (bool, err
 	}
 
 	container, err := client.CreateContainer(docker.CreateContainerOptions{
-		//Name: "bosonBuilder",
 		Config: &docker.Config{
 			Image: DockerImage,
 			Cmd:   args,
 		},
 	})
+	Attach(client, container)
 	// Cleanup when done
 	defer func() {
+		CopyFile(container.LogPath, config.LogDir+"/"+head+".json")
 		client.RemoveContainer(docker.RemoveContainerOptions{
 			ID:    container.ID,
 			Force: true,
@@ -33,9 +60,8 @@ func ContainerDeploy(config *Config, args []string, volumes []string) (bool, err
 	if err != nil {
 		log.Error(err.Error())
 	}
-
 	log.Info("Starting container: " + container.ID)
-	err = client.StartContainer(container.ID, &docker.HostConfig{Binds: volumes})
+	err = client.StartContainer(container.ID, &docker.HostConfig{Binds: volumes, LogConfig: docker.LogConfig{Type: "json-file"}})
 
 	if err != nil {
 		log.Error(err.Error())

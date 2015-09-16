@@ -20,6 +20,7 @@ type Config struct {
 	PostProcessor      string `yaml:"postprocessor"`
 	PollTime           int    `yaml:"polltime"`
 	Artifacts          string `yaml:"artifacts_dir"`
+	LogDir             string `yaml:"log_dir"`
 }
 
 //type Options struct {
@@ -56,6 +57,9 @@ func LoadConfig(f string) (Config, error) {
 	}
 	if config.DockerImage == "" {
 		log.Fatal("You need to specify a Docker image 'docker_image'")
+	}
+	if config.LogDir == "" {
+		log.Fatal("You need to specify a Log directory 'log_dir'")
 	}
 	if config.PollTime == 0 {
 		config.PollTime = 5

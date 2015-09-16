@@ -85,6 +85,7 @@ func main() {
 	//go func() {
 	os.MkdirAll(tmpdir, 666)
 	workdir := tmpdir + config.RepositoryStripped
+	//logsdir := tmpdir + "/logs/" + config.RepositoryStripped
 	client := jdb.NewDB("./" + configurationFile + ".db")
 	for range ticker.C {
 		log.Debug("Cloning " + config.Repository + " to " + workdir)
@@ -101,7 +102,7 @@ func main() {
 
 			ContainerArgs, ContainerVolumes := plugin_registry.Preprocessors[config.PreProcessor].Process(workdir, &config, client)
 
-			if ok, _ := utils.ContainerDeploy(&config, ContainerArgs, ContainerVolumes); ok == true {
+			if ok, _ := utils.ContainerDeploy(&config, ContainerArgs, ContainerVolumes, head); ok == true {
 				build := jdb.Build{Id: "LATEST_PASSED", Passed: true, Commit: head}
 				client.SaveBuild(build)
 				build = jdb.Build{Id: head, Passed: true, Commit: currentbuild.Commit}
