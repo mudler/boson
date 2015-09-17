@@ -51,7 +51,16 @@ func ContainerDeploy(config *Config, args []string, volumes []string, head strin
 	Attach(client, container)
 	// Cleanup when done
 	defer func() {
-		CopyFile(container.LogPath, config.LogDir+"/"+head+".json")
+		container, err = client.InspectContainer(container.ID)
+		if err != nil {
+			log.Error(err.Error())
+		}
+		// update our container information
+		log.Debug("Copying " + container.LogPath + " to " + config.LogDir + "/" + head + ".json")
+		err := CopyFile(container.LogPath, config.LogDir+"/"+head+".json")
+		if err != nil {
+			log.Error(err.Error())
+		}
 		client.RemoveContainer(docker.RemoveContainerOptions{
 			ID:    container.ID,
 			Force: true,
