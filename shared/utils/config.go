@@ -20,7 +20,9 @@ type Config struct {
 	PostProcessor      string `yaml:"postprocessor"`
 	PollTime           int    `yaml:"polltime"`
 	Artifacts          string `yaml:"artifacts_dir"`
+	SeparateArtifacts  bool   `yaml:"separate_artifacts"`
 	LogDir             string `yaml:"log_dir"`
+	LogPerm            uint32 `yaml:"logfile_perm"`
 }
 
 //type Options struct {
@@ -38,7 +40,9 @@ func LoadConfig(f string) (Config, error) {
 	}
 
 	var config Config
-
+	config.SeparateArtifacts = false
+	config.PollTime = 5
+	config.LogPerm = 0777
 	err = yaml.Unmarshal(yamlFile, &config)
 	log.Info("GIT Repository: %#v\n", config.Repository)
 
@@ -61,8 +65,6 @@ func LoadConfig(f string) (Config, error) {
 	if config.LogDir == "" {
 		log.Fatal("You need to specify a Log directory 'log_dir'")
 	}
-	if config.PollTime == 0 {
-		config.PollTime = 5
-	}
+
 	return config, err
 }

@@ -18,6 +18,7 @@ func (g *Gentoo) Process(workdir string, config *utils.Config, db *jdb.BuildClie
 
 	var ebuilds []string
 	var volumes []string
+	head := utils.GitHead(workdir)
 	build, err := db.GetBuild("LATEST_PASSED")
 	if err != nil {
 		log.Debug("Database returned no result")
@@ -25,7 +26,7 @@ func (g *Gentoo) Process(workdir string, config *utils.Config, db *jdb.BuildClie
 		//return []string{}, map[string]string{}
 	}
 	log.Info("Commit: " + build.Commit)
-	diffs, _ := utils.Git([]string{"diff", build.Commit, utils.GitHead(workdir), "--name-only"}, workdir)
+	diffs, _ := utils.Git([]string{"diff", build.Commit, head, "--name-only"}, workdir)
 	files := strings.Split(diffs, "\n")
 
 	for _, v := range files {
@@ -44,7 +45,12 @@ func (g *Gentoo) Process(workdir string, config *utils.Config, db *jdb.BuildClie
 	}
 
 	volumes = append(volumes, workdir+":/usr/local/portage:ro") //my volume dir to mount
-	volumes = append(volumes, config.Artifacts+":/usr/portage/packages")
+	if config.SeparateArtifacts == true {
+		//in such case, we explicitally want to separate each artifacts directory (in gentoo case , our artifact is /usr/portage/packages)
+		volumes = append(volumes, config.Artifacts+"/"+head+":/usr/portage/packages")
+	} else {
+		volumes = append(volumes, config.Artifacts+":/usr/portage/packages")
+	}
 	return ebuilds, volumes
 }
 

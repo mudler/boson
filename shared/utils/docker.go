@@ -5,6 +5,7 @@ import (
 	"bufio"
 	"github.com/fsouza/go-dockerclient"
 	"io"
+	"os"
 )
 
 func Attach(client *docker.Client, container *docker.Container) error {
@@ -56,8 +57,11 @@ func ContainerDeploy(config *Config, args []string, volumes []string, head strin
 			log.Error(err.Error())
 		}
 		// update our container information
-		log.Debug("Copying " + container.LogPath + " to " + config.LogDir + "/" + head + ".json")
-		err := CopyFile(container.LogPath, config.LogDir+"/"+head+".json")
+		logfile := config.LogDir + "/" + head + ".json"
+		log.Debug("Copying " + container.LogPath + " to " + logfile)
+		err := CopyFile(container.LogPath, logfile)
+		os.Chmod(logfile, os.FileMode(config.LogPerm))
+
 		if err != nil {
 			log.Error(err.Error())
 		}
