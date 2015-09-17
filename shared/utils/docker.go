@@ -52,19 +52,6 @@ func ContainerDeploy(config *Config, args []string, volumes []string, head strin
 	Attach(client, container)
 	// Cleanup when done
 	defer func() {
-		container, err = client.InspectContainer(container.ID)
-		if err != nil {
-			log.Error(err.Error())
-		}
-		// update our container information
-		logfile := config.LogDir + "/" + head + ".json"
-		log.Debug("Copying " + container.LogPath + " to " + logfile)
-		err := CopyFile(container.LogPath, logfile)
-		os.Chmod(logfile, os.FileMode(config.LogPerm))
-
-		if err != nil {
-			log.Error(err.Error())
-		}
 		client.RemoveContainer(docker.RemoveContainerOptions{
 			ID:    container.ID,
 			Force: true,
@@ -75,12 +62,24 @@ func ContainerDeploy(config *Config, args []string, volumes []string, head strin
 	}
 	log.Info("Starting container: " + container.ID)
 	err = client.StartContainer(container.ID, &docker.HostConfig{Binds: volumes, LogConfig: docker.LogConfig{Type: "json-file"}})
-
 	if err != nil {
 		log.Error(err.Error())
 		return false, err
 	}
 	status, err := client.WaitContainer(container.ID)
+	container, err = client.InspectContainer(container.ID)
+	if err != nil {
+		log.Error(err.Error())
+	}
+	// update our container information
+	logfile := config.LogDir + "/" + head + ".json"
+	log.Debug("Copying " + container.LogPath + " to " + logfile)
+	err = CopyFile(container.LogPath, logfile)
+	os.Chmod(logfile, os.FileMode(config.LogPerm))
+	if err != nil {
+		log.Error(err.Error())
+	}
+
 	if status == int(0) {
 		return true, err
 	} else {

@@ -22,7 +22,7 @@ type Config struct {
 	Artifacts          string `yaml:"artifacts_dir"`
 	SeparateArtifacts  bool   `yaml:"separate_artifacts"`
 	LogDir             string `yaml:"log_dir"`
-	LogPerm            uint32 `yaml:"logfile_perm"`
+	LogPerm            int    `yaml:"logfile_perm"`
 }
 
 //type Options struct {
@@ -42,14 +42,12 @@ func LoadConfig(f string) (Config, error) {
 	var config Config
 	config.SeparateArtifacts = false
 	config.PollTime = 5
-	config.LogPerm = 0777
+	config.LogPerm = int(777)
 	err = yaml.Unmarshal(yamlFile, &config)
-	log.Info("GIT Repository: %#v\n", config.Repository)
 
 	r, _ := regexp.Compile(`^.*?\/\/`)
 	config.RepositoryStripped = r.ReplaceAllString(config.Repository, "")
 
-	log.Info("Docker Image: %#v\n", config.DockerImage)
 	if config.Artifacts == "" {
 		log.Fatal("You need to specify 'artifacts_dir'")
 	}
@@ -65,6 +63,15 @@ func LoadConfig(f string) (Config, error) {
 	if config.LogDir == "" {
 		log.Fatal("You need to specify a Log directory 'log_dir'")
 	}
+	log.Info("GIT Repository: %#v\n", config.Repository)
+	log.Info("Docker Image: %#v\n", config.DockerImage)
+	log.Info("Artifacts directory: %#v\n", config.Artifacts)
+	log.Info("Separate Artifacts by commit: %#t\n", config.SeparateArtifacts)
+
+	log.Info("PreProcessor: %#v\n", config.PreProcessor)
+	log.Info("Log Directory: %#v\n", config.LogDir)
+	log.Info("Log Permissions: %#d\n", config.LogPerm)
+	log.Info("Poll Time: %#v\n", config.PollTime)
 
 	return config, err
 }
