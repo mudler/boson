@@ -26,6 +26,7 @@ type Config struct {
 	Env                []string `yaml:"env"`
 	Args               []string `yaml:"args"`
 	TmpDir             string   `yaml:"tmpdir"`
+	Volumes            []string `yaml:"volumes"`
 }
 
 //type Options struct {
@@ -45,7 +46,7 @@ func LoadConfig(f string) (Config, error) {
 	var config Config
 	config.SeparateArtifacts = false
 	config.PollTime = 5
-	config.LogPerm = int(0777)
+	config.LogPerm = int(0644)
 	config.TmpDir = "/var/tmp/boson/"
 	err = yaml.Unmarshal(yamlFile, &config)
 

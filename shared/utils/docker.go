@@ -64,6 +64,7 @@ func ContainerDeploy(config *Config, args []string, volumes []string, head strin
 		log.Error(err.Error())
 	}
 	log.Info("Starting container: " + container.ID)
+	volumes = append(volumes, config.Volumes...)
 	err = client.StartContainer(container.ID, &docker.HostConfig{Binds: volumes, LogConfig: docker.LogConfig{Type: "json-file"}})
 	if err != nil {
 		log.Error(err.Error())
