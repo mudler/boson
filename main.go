@@ -18,8 +18,6 @@ var format = logging.MustStringFormatter(
 	"%{color}%{time:15:04:05.000} %{shortpkg}.%{shortfunc} ▶ %{level:.4s} %{id:03x}%{color:reset} %{message}",
 )
 
-const tmpdir = "/var/tmp/boson/"
-
 func main() {
 
 	var c int
@@ -62,8 +60,8 @@ func main() {
 	}
 
 	ticker := time.NewTicker(time.Second * time.Duration(config.PollTime))
-	os.MkdirAll(tmpdir, 666)
-	workdir := tmpdir + config.RepositoryStripped
+	os.MkdirAll(config.TmpDir, 666)
+	workdir := config.TmpDir + config.RepositoryStripped
 	client := jdb.NewDB("./" + configurationFile + ".db")
 	for range ticker.C {
 		log.Debug("Cloning " + config.Repository + " to " + workdir)
@@ -97,7 +95,7 @@ func main() {
 				plugin_registry.Postprocessors[i].Process(workdir, &config, client)
 			}
 		} else { //otherwise simply clone the repo
-			log.Info(utils.Git([]string{"clone", config.Repository, workdir}, tmpdir))
+			log.Info(utils.Git([]string{"clone", config.Repository, workdir}, config.TmpDir))
 		}
 	}
 }

@@ -25,6 +25,7 @@ type Config struct {
 	LogPerm            int      `yaml:"logfile_perm"`
 	Env                []string `yaml:"env"`
 	Args               []string `yaml:"args"`
+	TmpDir             string   `yaml:"tmpdir"`
 }
 
 //type Options struct {
@@ -45,6 +46,7 @@ func LoadConfig(f string) (Config, error) {
 	config.SeparateArtifacts = false
 	config.PollTime = 5
 	config.LogPerm = int(0777)
+	config.TmpDir = "/var/tmp/boson/"
 	err = yaml.Unmarshal(yamlFile, &config)
 
 	r, _ := regexp.Compile(`^.*?\/\/`)
