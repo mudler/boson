@@ -24,19 +24,16 @@ func main() {
 
 	var c int
 	var configurationFile string
-	//var logFile string
 	OptErr = 0
 	for {
-		if c = Getopt("c:l:h"); c == EOF {
+		if c = Getopt("c:h"); c == EOF {
 			break
 		}
 		switch c {
 		case 'c':
 			configurationFile = OptArg
-			//	case 'l':
-			//		logFile = OptArg
 		case 'h':
-			//		println("usage: " + os.Args[0] + " [-c my-boson-file.yaml|-l logfile|-h]")
+			println("usage: " + os.Args[0] + " [-c my-boson-file.yaml -h]")
 			os.Exit(1)
 		}
 	}
@@ -45,19 +42,9 @@ func main() {
 		panic("I can't work without a configuration file")
 	}
 
-	//   backend1 := logging.NewLogBackend(os.Stderr, "", 0)
 	backend2 := logging.NewLogBackend(os.Stderr, "", 0)
-
-	// For messages written to backend2 we want to add some additional
-	// information to the output, including the used log level and the name of
-	// the function.
 	backend2Formatter := logging.NewBackendFormatter(backend2, format)
 
-	// Only errors and more severe messages should be sent to backend1
-	//   backend1Leveled := logging.AddModuleLevel(backend1)
-	//   backend1Leveled.SetLevel(logging.ERROR, "")
-
-	// Set the backends to be used.
 	logging.SetBackend(backend2Formatter)
 
 	log.Info("Loading config")
@@ -74,18 +61,9 @@ func main() {
 		plugin_registry.Preprocessors[i].OnStart()
 	}
 
-	// var build jdb.Build
-	// build.Id = "2"
-	// build.Passed = true
-	// build.Commit = "test"
-	// client.SaveBuild(build)
-	// os.Exit(1)
-
 	ticker := time.NewTicker(time.Second * time.Duration(config.PollTime))
-	//go func() {
 	os.MkdirAll(tmpdir, 666)
 	workdir := tmpdir + config.RepositoryStripped
-	//logsdir := tmpdir + "/logs/" + config.RepositoryStripped
 	client := jdb.NewDB("./" + configurationFile + ".db")
 	for range ticker.C {
 		log.Debug("Cloning " + config.Repository + " to " + workdir)
@@ -118,14 +96,8 @@ func main() {
 				log.Info("Postprocessor found:" + i)
 				plugin_registry.Postprocessors[i].Process(workdir, &config, client)
 			}
-			//	deploy(&config, []string{"app-text/tree"})
 		} else { //otherwise simply clone the repo
 			log.Info(utils.Git([]string{"clone", config.Repository, workdir}, tmpdir))
 		}
 	}
-	//}()
-	//time.Sleep(time.Millisecond * 1500)
-	//ticker.Stop()
-	//fmt.Println("Ticker stopped")
-
 }
