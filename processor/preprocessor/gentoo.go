@@ -12,6 +12,8 @@ import (
 
 var log = logging.MustGetLogger("boson")
 
+const artifactsdir = "/usr/portage/packages"
+
 type Gentoo struct{}
 
 func (g *Gentoo) Process(workdir string, config *utils.Config, db *jdb.BuildClient) ([]string, []string) { //returns args and volumes to mount
@@ -46,10 +48,10 @@ func (g *Gentoo) Process(workdir string, config *utils.Config, db *jdb.BuildClie
 
 	volumes = append(volumes, workdir+":/usr/local/portage:ro") //my volume dir to mount
 	if config.SeparateArtifacts == true {
-		//in such case, we explicitally want to separate each artifacts directory (in gentoo case , our artifact is /usr/portage/packages)
-		volumes = append(volumes, config.Artifacts+"/"+head+":/usr/portage/packages")
+		//in such case, we explicitally want to separate each artifacts directory (in gentoo , our artifact is /usr/portage/packages)
+		volumes = append(volumes, config.Artifacts+"/"+head+":"+artifactsdir)
 	} else {
-		volumes = append(volumes, config.Artifacts+":/usr/portage/packages")
+		volumes = append(volumes, config.Artifacts+":"+artifactsdir)
 	}
 	return ebuilds, volumes
 }
