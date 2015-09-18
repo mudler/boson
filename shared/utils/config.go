@@ -17,7 +17,7 @@ type Config struct {
 	RepositoryStripped string
 	DockerImage        string   `yaml:"docker_image"`
 	PreProcessor       string   `yaml:"preprocessor"`
-	PostProcessor      string   `yaml:"postprocessor"`
+	PostProcessor      []string `yaml:"postprocessors"`
 	PollTime           int      `yaml:"polltime"`
 	Artifacts          string   `yaml:"artifacts_dir"`
 	SeparateArtifacts  bool     `yaml:"separate_artifacts"`
@@ -44,7 +44,7 @@ func LoadConfig(f string) (Config, error) {
 	var config Config
 	config.SeparateArtifacts = false
 	config.PollTime = 5
-	config.LogPerm = int(777)
+	config.LogPerm = int(0777)
 	err = yaml.Unmarshal(yamlFile, &config)
 
 	r, _ := regexp.Compile(`^.*?\/\/`)

@@ -113,6 +113,11 @@ func main() {
 				build = jdb.Build{Id: head, Passed: false, Commit: currentbuild.Commit}
 				client.SaveBuild(build)
 			}
+
+			for i, _ := range plugin_registry.Postprocessors {
+				log.Info("Postprocessor found:" + i)
+				plugin_registry.Postprocessors[i].Process(workdir, &config, client)
+			}
 			//	deploy(&config, []string{"app-text/tree"})
 		} else { //otherwise simply clone the repo
 			log.Info(utils.Git([]string{"clone", config.Repository, workdir}, tmpdir))
