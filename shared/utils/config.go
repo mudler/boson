@@ -15,14 +15,16 @@ type Config struct {
 	// Firewall_network_rules map[string]Options `yaml:"repository"`
 	Repository         string `yaml:"repository"`
 	RepositoryStripped string
-	DockerImage        string `yaml:"docker_image"`
-	PreProcessor       string `yaml:"preprocessor"`
-	PostProcessor      string `yaml:"postprocessor"`
-	PollTime           int    `yaml:"polltime"`
-	Artifacts          string `yaml:"artifacts_dir"`
-	SeparateArtifacts  bool   `yaml:"separate_artifacts"`
-	LogDir             string `yaml:"log_dir"`
-	LogPerm            int    `yaml:"logfile_perm"`
+	DockerImage        string   `yaml:"docker_image"`
+	PreProcessor       string   `yaml:"preprocessor"`
+	PostProcessor      string   `yaml:"postprocessor"`
+	PollTime           int      `yaml:"polltime"`
+	Artifacts          string   `yaml:"artifacts_dir"`
+	SeparateArtifacts  bool     `yaml:"separate_artifacts"`
+	LogDir             string   `yaml:"log_dir"`
+	LogPerm            int      `yaml:"logfile_perm"`
+	Env                []string `yaml:"env"`
+	Args               []string `yaml:"args"`
 }
 
 //type Options struct {
