@@ -21,7 +21,7 @@ func Exists(path string) (bool, error) {
 // by dst. The file will be created if it does not already exist. If the
 // destination file exists, all it's contents will be replaced by the contents
 // of the source file.
-func copyFileContents(src, dst string) (err error) {
+func CopyFileContents(src, dst string) (err error) {
 	in, err := os.Open(src)
 	if err != nil {
 		return
@@ -73,6 +73,6 @@ func CopyFile(src, dst string) (err error) {
 	if err = os.Link(src, dst); err == nil {
 		return
 	}
-	err = copyFileContents(src, dst)
+	err = CopyFileContents(src, dst)
 	return
 }

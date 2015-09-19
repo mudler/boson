@@ -78,7 +78,7 @@ func ContainerDeploy(config *Config, args []string, volumes []string, head strin
 
 	logfile := config.LogDir + "/" + head + ".json"
 	log.Debug("Copying " + container.LogPath + " to " + logfile)
-	err = CopyFile(container.LogPath, logfile)
+	err = CopyFileContents(container.LogPath, logfile)
 	os.Chmod(logfile, os.FileMode(config.LogPerm))
 	if err != nil {
 		log.Error(err.Error())
