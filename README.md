@@ -31,9 +31,9 @@ The PreProcessor then construct and orchestrate the arguments and volumes to fee
 
 In such way, the Gentoo Preprocessor can spawn a builder machine that compile and tests your files.
 
-### Config file
+### Boson file
 
-The Yaml file lets you specify few options for now (that suited well my case)
+Boson file lets you define few options for now (that suited well my case)
 
     ---
     repository: https://github.com/yourusername/yourrepo.git
