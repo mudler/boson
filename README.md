@@ -31,7 +31,14 @@ The PreProcessor then construct and orchestrate the arguments and volumes to fee
 
 In such way, the Gentoo Preprocessor can spawn a builder machine that compile and tests your files.
 
+### Usage
+
+Compile it as a normal go project, and then
+
+	./boson -c your-boson-file.yaml
+
 ### Boson file
+
 
 Boson file lets you define few options for now (that suited well my case)
 
