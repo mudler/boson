@@ -111,8 +111,11 @@ func main() {
 			ContainerArgs, ContainerVolumes := plugin_registry.Provisioners[i].Process(workdir, &config, client)
 
 			if ok, _ := utils.ContainerDeploy(&config, ContainerArgs, ContainerVolumes, "LATEST-PROVISIONED"); ok == true {
+				log.Info("All done")
 				os.Exit(0)
 			} else {
+				log.Error("Build failed")
+
 				os.Exit(100)
 			}
 

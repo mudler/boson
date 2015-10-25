@@ -17,6 +17,8 @@ type Config struct {
 	RepositoryStripped    string
 	DockerImage           string              `yaml:"docker_image"`
 	DockerSkipPull        bool                `yaml:"docker_skip_pull"`
+	DockerCommit          bool                `yaml:"docker_commit"`
+	Commit                map[string]string   `yaml:"commit"`
 	DockerImageEntrypoint []string            `yaml:"docker_image_entrypoint"`
 	PreProcessor          string              `yaml:"preprocessor"`
 	Provisioner           map[string][]string `yaml:"provisioner"`
