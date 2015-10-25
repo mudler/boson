@@ -13,20 +13,23 @@ var log = logging.MustGetLogger("boson")
 
 type Config struct {
 	// Firewall_network_rules map[string]Options `yaml:"repository"`
-	Repository         string `yaml:"repository"`
-	RepositoryStripped string
-	DockerImage        string   `yaml:"docker_image"`
-	PreProcessor       string   `yaml:"preprocessor"`
-	PostProcessor      []string `yaml:"postprocessors"`
-	PollTime           int      `yaml:"polltime"`
-	Artifacts          string   `yaml:"artifacts_dir"`
-	SeparateArtifacts  bool     `yaml:"separate_artifacts"`
-	LogDir             string   `yaml:"log_dir"`
-	LogPerm            int      `yaml:"logfile_perm"`
-	Env                []string `yaml:"env"`
-	Args               []string `yaml:"args"`
-	TmpDir             string   `yaml:"tmpdir"`
-	Volumes            []string `yaml:"volumes"`
+	Repository            string `yaml:"repository"`
+	RepositoryStripped    string
+	DockerImage           string              `yaml:"docker_image"`
+	DockerSkipPull        bool                `yaml:"docker_skip_pull"`
+	DockerImageEntrypoint []string            `yaml:"docker_image_entrypoint"`
+	PreProcessor          string              `yaml:"preprocessor"`
+	Provisioner           map[string][]string `yaml:"provisioner"`
+	PostProcessor         []string            `yaml:"postprocessors"`
+	PollTime              int                 `yaml:"polltime"`
+	Artifacts             string              `yaml:"artifacts_dir"`
+	SeparateArtifacts     bool                `yaml:"separate_artifacts"`
+	LogDir                string              `yaml:"log_dir"`
+	LogPerm               int                 `yaml:"logfile_perm"`
+	Env                   []string            `yaml:"env"`
+	Args                  []string            `yaml:"args"`
+	TmpDir                string              `yaml:"tmpdir"`
+	Volumes               []string            `yaml:"volumes"`
 }
 
 //type Options struct {
@@ -48,6 +51,7 @@ func LoadConfig(f string) (Config, error) {
 	config.PollTime = 5
 	config.LogPerm = int(0644)
 	config.TmpDir = "/var/tmp/boson/"
+	config.DockerSkipPull = false
 	err = yaml.Unmarshal(yamlFile, &config)
 
 	r, _ := regexp.Compile(`^.*?\/\/`)
@@ -55,12 +59,6 @@ func LoadConfig(f string) (Config, error) {
 
 	if config.Artifacts == "" {
 		log.Fatal("You need to specify 'artifacts_dir'")
-	}
-	if config.PreProcessor == "" {
-		log.Fatal("You need to specify a preprocessor 'preprocessors'")
-	}
-	if config.Repository == "" {
-		log.Fatal("You need to specify a repository 'repository'")
 	}
 	if config.DockerImage == "" {
 		log.Fatal("You need to specify a Docker image 'docker_image'")

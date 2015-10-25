@@ -25,6 +25,11 @@ func Git(cmdArgs []string, dir string) (string, error) {
 	return strings.TrimSpace(result), err
 }
 
+func GitAlignToUpstream(workdir string) {
+	log.Info(Git([]string{"fetch", "--all"}, workdir))
+	log.Info(Git([]string{"reset", "--hard", "origin/master"}, workdir))
+}
+
 func GitHead(workdir string) string {
 	head, _ := Git([]string{"rev-parse", "HEAD"}, workdir)
 	return head

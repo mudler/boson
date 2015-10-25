@@ -2,7 +2,10 @@ package main
 
 import (
 	. "github.com/mattn/go-getopt"
-	_ "github.com/mudler/boson/processor/preprocessor"
+
+	_ "github.com/mudler/boson/processor/preprocessor/gentoo"
+	_ "github.com/mudler/boson/processor/provisioner/shell"
+
 	"github.com/mudler/boson/shared/registry"
 
 	"github.com/mudler/boson/jdb"
@@ -54,48 +57,66 @@ func main() {
 	}
 
 	// Bootstrapper for plugins
+	log.Info("Available preprocessors:")
+
 	for i, _ := range plugin_registry.Preprocessors {
-		log.Info("Preprocessor found:" + i)
+		log.Info("\t *" + i)
 		plugin_registry.Preprocessors[i].OnStart()
 	}
 
-	ticker := time.NewTicker(time.Second * time.Duration(config.PollTime))
 	os.MkdirAll(config.TmpDir, 666)
 	workdir := config.TmpDir + config.RepositoryStripped
 	client := jdb.NewDB("./" + configurationFile + ".db")
-	for range ticker.C {
-		log.Debug("Cloning " + config.Repository + " to " + workdir)
-		if ok, _ := utils.Exists(workdir); ok == true { //if already exists, using fetch && reset
-			head := utils.GitHead(workdir)
-			log.Info(utils.Git([]string{"fetch", "--all"}, workdir))
-			log.Info(utils.Git([]string{"reset", "--hard", "origin/master"}, workdir))
-			currentbuild, _ := client.GetBuild("LATEST_PASSED")
-			log.Info("Head now is at " + head)
-			if head == currentbuild.Commit {
-				log.Info("nothing to do")
-				continue
+
+	if _, ok := plugin_registry.Preprocessors[config.PreProcessor]; ok {
+		ticker := time.NewTicker(time.Second * time.Duration(config.PollTime))
+		for range ticker.C {
+			log.Debug("Cloning " + config.Repository + " to " + workdir)
+			if ok, _ := utils.Exists(workdir); ok == true { //if already exists, using fetch && reset
+				utils.GitAlignToUpstream(workdir)
+				currentbuild, _ := client.GetBuild("LATEST_PASSED")
+				head := utils.GitHead(workdir)
+				log.Info("Head now is at " + head)
+				if head == currentbuild.Commit {
+					log.Info("nothing to do")
+					continue
+				}
+
+				ContainerArgs, ContainerVolumes := plugin_registry.Preprocessors[config.PreProcessor].Process(workdir, &config, client)
+
+				if ok, _ := utils.ContainerDeploy(&config, ContainerArgs, ContainerVolumes, head); ok == true {
+					build := jdb.Build{Id: "LATEST_PASSED", Passed: true, Commit: head}
+					client.SaveBuild(build)
+					build = jdb.Build{Id: head, Passed: true, Commit: currentbuild.Commit}
+					client.SaveBuild(build)
+				} else {
+					build := jdb.Build{Id: "LATEST_PASSED", Passed: false, Commit: head}
+					client.SaveBuild(build)
+					build = jdb.Build{Id: head, Passed: false, Commit: currentbuild.Commit}
+					client.SaveBuild(build)
+				}
+
+				for i, _ := range plugin_registry.Postprocessors {
+					log.Info("Postprocessor found:" + i)
+					plugin_registry.Postprocessors[i].Process(workdir, &config, client)
+				}
+			} else { //otherwise simply clone the repo
+				log.Info(utils.Git([]string{"clone", config.Repository, workdir}, config.TmpDir))
 			}
+		}
+	} else { //Provisioning
+		for i, _ := range config.Provisioner {
+			log.Info("\t - " + i)
+			plugin_registry.Provisioners[i].OnStart()
+			ContainerArgs, ContainerVolumes := plugin_registry.Provisioners[i].Process(workdir, &config, client)
 
-			ContainerArgs, ContainerVolumes := plugin_registry.Preprocessors[config.PreProcessor].Process(workdir, &config, client)
-
-			if ok, _ := utils.ContainerDeploy(&config, ContainerArgs, ContainerVolumes, head); ok == true {
-				build := jdb.Build{Id: "LATEST_PASSED", Passed: true, Commit: head}
-				client.SaveBuild(build)
-				build = jdb.Build{Id: head, Passed: true, Commit: currentbuild.Commit}
-				client.SaveBuild(build)
+			if ok, _ := utils.ContainerDeploy(&config, ContainerArgs, ContainerVolumes, "LATEST-PROVISIONED"); ok == true {
+				os.Exit(0)
 			} else {
-				build := jdb.Build{Id: "LATEST_PASSED", Passed: false, Commit: head}
-				client.SaveBuild(build)
-				build = jdb.Build{Id: head, Passed: false, Commit: currentbuild.Commit}
-				client.SaveBuild(build)
+				os.Exit(100)
 			}
 
-			for i, _ := range plugin_registry.Postprocessors {
-				log.Info("Postprocessor found:" + i)
-				plugin_registry.Postprocessors[i].Process(workdir, &config, client)
-			}
-		} else { //otherwise simply clone the repo
-			log.Info(utils.Git([]string{"clone", config.Repository, workdir}, config.TmpDir))
 		}
 	}
+
 }

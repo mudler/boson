@@ -11,6 +11,7 @@ import (
 // These are registered plugins
 var Preprocessors = map[string]processor.Processor{}
 var Postprocessors = map[string]processor.Processor{}
+var Provisioners = map[string]processor.Processor{}
 
 // Register a Preprocessor
 func RegisterPreprocessor(p processor.Processor) {
@@ -20,6 +21,11 @@ func RegisterPreprocessor(p processor.Processor) {
 // Register a Postprocessor
 func RegisterPostprocessor(p processor.Processor) {
 	Postprocessors[KeyOf(p)] = p
+}
+
+// Register a Provisioner
+func RegisterProvisioner(p processor.Processor) {
+	Provisioners[KeyOf(p)] = p
 }
 
 func KeyOf(p processor.Processor) string {

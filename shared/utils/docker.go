@@ -36,22 +36,37 @@ func Attach(client *docker.Client, container *docker.Container) error {
 func ContainerDeploy(config *Config, args []string, volumes []string, head string) (bool, error) {
 	endpoint := "unix:///var/run/docker.sock"
 	client, _ := docker.NewClient(endpoint)
+	var container *docker.Container
+	var err error
 	DockerImage := config.DockerImage
-	log.Info("Pulling image: %s\n", DockerImage)
 
-	if err := client.PullImage(docker.PullImageOptions{Repository: DockerImage}, docker.AuthConfiguration{}); err != nil {
-		log.Error("error pulling %s image: %s\n", DockerImage, err)
-		return false, err
+	if config.DockerSkipPull == false {
+		log.Info("Pulling image: %s\n", DockerImage)
+
+		if err := client.PullImage(docker.PullImageOptions{Repository: DockerImage}, docker.AuthConfiguration{}); err != nil {
+			log.Error("error pulling %s image: %s\n", DockerImage, err)
+			return false, err
+		}
 	}
 	combinedArgs := append(args, config.Args...)
-
-	container, err := client.CreateContainer(docker.CreateContainerOptions{
-		Config: &docker.Config{
-			Image: DockerImage,
-			Cmd:   combinedArgs,
-			Env:   config.Env,
-		},
-	})
+	if len(config.DockerImageEntrypoint) == 0 {
+		container, err = client.CreateContainer(docker.CreateContainerOptions{
+			Config: &docker.Config{
+				Image: DockerImage,
+				Cmd:   combinedArgs,
+				Env:   config.Env,
+			},
+		})
+	} else {
+		container, err = client.CreateContainer(docker.CreateContainerOptions{
+			Config: &docker.Config{
+				Image:      DockerImage,
+				Cmd:        combinedArgs,
+				Env:        config.Env,
+				Entrypoint: config.DockerImageEntrypoint,
+			},
+		})
+	}
 	Attach(client, container)
 	// Cleanup when done
 	defer func() {
