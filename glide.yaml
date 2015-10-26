@@ -4,3 +4,6 @@ import:
   - package: github.com/op/go-logging
   - package: github.com/mattn/go-getopt
   - package: gopkg.in/yaml.v2
+  - package: github.com/mudler/boson
+    subpackages:
+      - /jdb
