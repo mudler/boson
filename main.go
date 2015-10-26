@@ -8,6 +8,7 @@ import (
 
 	"github.com/mudler/boson/shared/registry"
 
+	"fmt"
 	"github.com/mudler/boson/jdb"
 	"os"
 	"time"
@@ -40,7 +41,8 @@ func main() {
 	}
 
 	if configurationFile == "" {
-		panic("I can't work without a configuration file")
+		fmt.Println("I can't work without a configuration file")
+		os.Exit(1)
 	}
 
 	backend2 := logging.NewLogBackend(os.Stderr, "", 0)
@@ -115,7 +117,6 @@ func main() {
 				os.Exit(0)
 			} else {
 				log.Error("Build failed")
-
 				os.Exit(100)
 			}
 

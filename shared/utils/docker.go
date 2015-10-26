@@ -93,8 +93,8 @@ func ContainerDeploy(config *Config, args []string, volumes []string, head strin
 					Repository: repository,
 					Message:    message,
 					Author:     author,
-					Tag  :      tag,
-					Run: containerconfig,
+					Tag:        tag,
+					Run:        containerconfig,
 				})
 				if err != nil {
 					log.Error(err.Error())
