@@ -70,8 +70,8 @@ func main() {
 
 	if _, ok := plugin_registry.Preprocessors[config.PreProcessor]; ok {
 		ticker := time.NewTicker(time.Second * time.Duration(config.PollTime))
-		for range ticker.C {
-			log.Debug("Cloning " + config.Repository + " to " + workdir)
+		for _ = range ticker.C {
+			log.Debug(" Cloning " + config.Repository + " to " + workdir)
 			if ok, _ := utils.Exists(workdir); ok == true { //if already exists, using fetch && reset
 				utils.GitAlignToUpstream(workdir)
 				currentbuild, _ := client.GetBuild("LATEST_PASSED")
