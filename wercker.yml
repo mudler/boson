@@ -39,7 +39,7 @@ deploy:
     - script: 
         name: gox build
         code: |
-          $GOPATH/bin/gox
+          $GOPATH/bin/gox -os="linux"
 
     # Create a release based on the current tag
     - github-create-release:
@@ -49,21 +49,6 @@ deploy:
     # Upload all assets
     - github-upload-asset:
         token: $GITHUB_TOKEN
-        file: boson_darwin_386
-    - github-upload-asset:
-        token: $GITHUB_TOKEN
-        file: boson_darwin_amd64
-    - github-upload-asset:
-        token: $GITHUB_TOKEN
-        file: boson_freebsd_386
-    - github-upload-asset:
-        token: $GITHUB_TOKEN
-        file: boson_freebsd_amd64
-    - github-upload-asset:
-        token: $GITHUB_TOKEN
-        file: boson_freebsd_arm
-    - github-upload-asset:
-        token: $GITHUB_TOKEN
         file: boson_linux_386
     - github-upload-asset:
         token: $GITHUB_TOKEN
@@ -71,18 +56,4 @@ deploy:
     - github-upload-asset:
         token: $GITHUB_TOKEN
         file: boson_linux_arm
-    - github-upload-asset:
-        token: $GITHUB_TOKEN
-        file: boson_netbsd_386
-    - github-upload-asset:
-        token: $GITHUB_TOKEN
-        file: boson_netbsd_amd64
-    - github-upload-asset:
-        token: $GITHUB_TOKEN
-        file: boson_netbsd_arm
-    - github-upload-asset:
-        token: $GITHUB_TOKEN
-        file: boson_openbsd_386
-    - github-upload-asset:
-        token: $GITHUB_TOKEN
-        file: boson_openbsd_amd64
+
