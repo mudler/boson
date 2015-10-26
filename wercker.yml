@@ -1,16 +1,88 @@
 box: golang
+
 build:
   steps:
     - setup-go-workspace
+    - termie/glide-build@2014.345.145
+
+deploy:
+  steps:
+
+    # Install file utility needed by gox
     - script:
-        name: go get
-        code: |
-          go get
+      name: apt-update/install file, jq
+      code: |
+        apt-get update -qy && apt-get install -qy file jq
+    # Get the git tag of this commit, otherwise fail on this step
+    # Only tagged commits will be deployed
+    # # export GIT_TAG=`git describe --tags --exact-match "${WERCKER_GIT_COMMIT}" 2>/dev/null` && test -n "$GIT_TAG"
     - script:
-        name: go build
-        code: |
-          go build ./...
+      name: git tag
+      code: |
+        echo "Wercker commit: $WERCKER_GIT_COMMIT"
+        export GIT_TAG=$(curl https://api.github.com/repos/mudler/boson/tags | jq -r ".[] | select(.commit.sha == \"${WERCKER_GIT_COMMIT}\") | .name")
+        echo "Git tag is: $GIT_TAG"
+        test -n "$GIT_TAG"
+
+    # Setup go workspace
+    - setup-go-workspace
+    # Build source using glide
+    - termie/glide-build@2014.345.145
+
+    # Install gox
     - script:
-        name: go test
+        name: gox install
         code: |
-          go test ./...
+          go get github.com/mitchellh/gox
+
+    # Build all binaries
+    - script: 
+        name: gox build
+        code: |
+          $GOPATH/bin/gox
+
+    # Create a release based on the current tag
+    - github-create-release:
+        token: $GITHUB_TOKEN
+        tag: $GIT_TAG
+
+    # Upload all assets
+    - github-upload-asset:
+        token: $GITHUB_TOKEN
+        file: boson_darwin_386
+    - github-upload-asset:
+        token: $GITHUB_TOKEN
+        file: boson_darwin_amd64
+    - github-upload-asset:
+        token: $GITHUB_TOKEN
+        file: boson_freebsd_386
+    - github-upload-asset:
+        token: $GITHUB_TOKEN
+        file: boson_freebsd_amd64
+    - github-upload-asset:
+        token: $GITHUB_TOKEN
+        file: boson_freebsd_arm
+    - github-upload-asset:
+        token: $GITHUB_TOKEN
+        file: boson_linux_386
+    - github-upload-asset:
+        token: $GITHUB_TOKEN
+        file: boson_linux_amd64
+    - github-upload-asset:
+        token: $GITHUB_TOKEN
+        file: boson_linux_arm
+    - github-upload-asset:
+        token: $GITHUB_TOKEN
+        file: boson_netbsd_386
+    - github-upload-asset:
+        token: $GITHUB_TOKEN
+        file: boson_netbsd_amd64
+    - github-upload-asset:
+        token: $GITHUB_TOKEN
+        file: boson_netbsd_arm
+    - github-upload-asset:
+        token: $GITHUB_TOKEN
+        file: boson_openbsd_386
+    - github-upload-asset:
+        token: $GITHUB_TOKEN
+        file: boson_openbsd_amd64
