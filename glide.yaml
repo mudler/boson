@@ -1,0 +1,6 @@
+package: main
+import:
+  - package: github.com/fsouza/go-dockerclient
+  - package: github.com/op/go-logging
+  - package: github.com/mattn/go-getopt
+  - package: gopkg.in/yaml.v2
