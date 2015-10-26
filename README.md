@@ -1,5 +1,7 @@
 # Boson
 
+[![wercker status](https://app.wercker.com/status/5d8c39eb339bbff485baab3840a4a099/m "wercker status")](https://app.wercker.com/project/bykey/5d8c39eb339bbff485baab3840a4a099)
+
 ### ...easy as polling
 
 Boson is a CI System that uses POLL technique instead of WebHooks. Yes, a question now will pop in your mind
