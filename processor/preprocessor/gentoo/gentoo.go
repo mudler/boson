@@ -65,5 +65,5 @@ func (g *Gentoo) OnStart() {
 }
 
 func init() {
-	plugin_registry.RegisterPreprocessor(&Gentoo{})
+	pluginregistry.RegisterPreprocessor(&Gentoo{})
 }

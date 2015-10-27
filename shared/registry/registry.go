@@ -1,5 +1,5 @@
-// Package plugin_registry register plugins here, the registry keep tracks of plugins to redirect the messages
-package plugin_registry
+// Package pluginregistry register plugins here, the registry keep tracks of plugins to redirect the messages
+package pluginregistry
 
 import (
 	"github.com/mudler/boson/processor"

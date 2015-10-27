@@ -25,5 +25,5 @@ func (s *Shell) Process(workdir string, config *utils.Config, db *jdb.BuildClien
 }
 
 func init() {
-	plugin_registry.RegisterProvisioner(&Shell{})
+	pluginregistry.RegisterProvisioner(&Shell{})
 }

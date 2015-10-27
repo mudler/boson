@@ -60,16 +60,16 @@ func main() {
 	// Bootstrapper for plugins
 	log.Info("Available preprocessors:")
 
-	for i := range plugin_registry.Preprocessors {
+	for i := range pluginregistry.Preprocessors {
 		log.Info("\t *" + i)
-		plugin_registry.Preprocessors[i].OnStart()
+		pluginregistry.Preprocessors[i].OnStart()
 	}
 
 	os.MkdirAll(config.TmpDir, 666)
 	workdir := config.TmpDir + config.RepositoryStripped
 	client := jdb.NewDB("./" + configurationFile + ".db")
 
-	if _, ok := plugin_registry.Preprocessors[config.PreProcessor]; ok {
+	if _, ok := pluginregistry.Preprocessors[config.PreProcessor]; ok {
 		ticker := time.NewTicker(time.Second * time.Duration(config.PollTime))
 		for _ = range ticker.C {
 			log.Debug(" Cloning " + config.Repository + " to " + workdir)
@@ -83,7 +83,7 @@ func main() {
 					continue
 				}
 
-				ContainerArgs, ContainerVolumes := plugin_registry.Preprocessors[config.PreProcessor].Process(workdir, &config, client)
+				ContainerArgs, ContainerVolumes := pluginregistry.Preprocessors[config.PreProcessor].Process(workdir, &config, client)
 
 				if ok, _ := utils.ContainerDeploy(&config, ContainerArgs, ContainerVolumes, head); ok == true {
 					build := jdb.Build{Id: "LATEST_PASSED", Passed: true, Commit: head}
@@ -97,9 +97,9 @@ func main() {
 					client.SaveBuild(build)
 				}
 
-				for i := range plugin_registry.Postprocessors {
+				for i := range pluginregistry.Postprocessors {
 					log.Info("Postprocessor found:" + i)
-					plugin_registry.Postprocessors[i].Process(workdir, &config, client)
+					pluginregistry.Postprocessors[i].Process(workdir, &config, client)
 				}
 			} else { //otherwise simply clone the repo
 				log.Info(utils.Git([]string{"clone", config.Repository, workdir}, config.TmpDir))
@@ -108,8 +108,8 @@ func main() {
 	} else { //Provisioning
 		for i := range config.Provisioner {
 			log.Info("\t - " + i)
-			plugin_registry.Provisioners[i].OnStart()
-			ContainerArgs, ContainerVolumes := plugin_registry.Provisioners[i].Process(workdir, &config, client)
+			pluginregistry.Provisioners[i].OnStart()
+			ContainerArgs, ContainerVolumes := pluginregistry.Provisioners[i].Process(workdir, &config, client)
 
 			if ok, _ := utils.ContainerDeploy(&config, ContainerArgs, ContainerVolumes, "LATEST-PROVISIONED"); ok == true {
 				log.Info("All done")
