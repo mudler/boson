@@ -1,21 +1,24 @@
 package gentoo
 
 import (
+	"io/ioutil"
+	"path/filepath"
+	"strings"
+
 	"github.com/mudler/boson/jdb"
 	"github.com/mudler/boson/shared/registry"
 	"github.com/mudler/boson/shared/utils"
 	"github.com/op/go-logging"
-	"io/ioutil"
-	"path/filepath"
-	"strings"
 )
 
 var log = logging.MustGetLogger("boson")
 
 const artifactsdir = "/usr/portage/packages"
 
+// Gentoo is the Preprocessor that detects Gentoo ebuilds between commits
 type Gentoo struct{}
 
+// Process builds a list of packages to emerge between commits
 func (g *Gentoo) Process(workdir string, config *utils.Config, db *jdb.BuildClient) ([]string, []string) { //returns args and volumes to mount
 
 	var ebuilds []string
@@ -56,6 +59,7 @@ func (g *Gentoo) Process(workdir string, config *utils.Config, db *jdb.BuildClie
 	return ebuilds, volumes
 }
 
+// OnStart on Gentoo Preprocessor
 func (g *Gentoo) OnStart() {
 	log.Info("Gentoo Preprocessor")
 }

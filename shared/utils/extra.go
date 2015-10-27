@@ -6,6 +6,7 @@ import (
 	"os"
 )
 
+// Exists checks if a path exists or not
 func Exists(path string) (bool, error) {
 	_, err := os.Stat(path)
 	if err == nil {
@@ -17,7 +18,7 @@ func Exists(path string) (bool, error) {
 	return true, err
 }
 
-// copyFileContents copies the contents of the file named src to the file named
+// CopyFileContents copies the contents of the file named src to the file named
 // by dst. The file will be created if it does not already exist. If the
 // destination file exists, all it's contents will be replaced by the contents
 // of the source file.

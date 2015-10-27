@@ -1,16 +1,18 @@
 package utils
 
 import (
-	"github.com/op/go-logging"
 	"io/ioutil"
 	"path/filepath"
 	"regexp"
+
+	"github.com/op/go-logging"
 
 	"gopkg.in/yaml.v2"
 )
 
 var log = logging.MustGetLogger("boson")
 
+// Config represent the yaml configuration file
 type Config struct {
 	// Firewall_network_rules map[string]Options `yaml:"repository"`
 	Repository            string `yaml:"repository"`
@@ -39,6 +41,7 @@ type Config struct {
 //   Dst string
 //}
 
+// LoadConfig generate a Config from the given yaml file path
 func LoadConfig(f string) (Config, error) {
 
 	filename, _ := filepath.Abs(f)

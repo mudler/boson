@@ -6,13 +6,12 @@ import (
 	_ "github.com/mudler/boson/processor/preprocessor/gentoo"
 	_ "github.com/mudler/boson/processor/provisioner/shell"
 
-	"github.com/mudler/boson/shared/registry"
-
 	"fmt"
-	"github.com/mudler/boson/jdb"
 	"os"
 	"time"
 
+	"github.com/mudler/boson/jdb"
+	"github.com/mudler/boson/shared/registry"
 	"github.com/mudler/boson/shared/utils"
 	"github.com/op/go-logging"
 )
@@ -61,7 +60,7 @@ func main() {
 	// Bootstrapper for plugins
 	log.Info("Available preprocessors:")
 
-	for i, _ := range plugin_registry.Preprocessors {
+	for i := range plugin_registry.Preprocessors {
 		log.Info("\t *" + i)
 		plugin_registry.Preprocessors[i].OnStart()
 	}
@@ -98,7 +97,7 @@ func main() {
 					client.SaveBuild(build)
 				}
 
-				for i, _ := range plugin_registry.Postprocessors {
+				for i := range plugin_registry.Postprocessors {
 					log.Info("Postprocessor found:" + i)
 					plugin_registry.Postprocessors[i].Process(workdir, &config, client)
 				}
@@ -107,7 +106,7 @@ func main() {
 			}
 		}
 	} else { //Provisioning
-		for i, _ := range config.Provisioner {
+		for i := range config.Provisioner {
 			log.Info("\t - " + i)
 			plugin_registry.Provisioners[i].OnStart()
 			ContainerArgs, ContainerVolumes := plugin_registry.Provisioners[i].Process(workdir, &config, client)

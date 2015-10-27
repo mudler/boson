@@ -1,4 +1,4 @@
-// Plugin register themselves here, the registry keep tracks of plugins to redirect the messages
+// Package plugin_registry register plugins here, the registry keep tracks of plugins to redirect the messages
 package plugin_registry
 
 import (
@@ -8,26 +8,30 @@ import (
 	"strings"
 )
 
-// These are registered plugins
+// Preprocessors contains a map of Preprocessor
 var Preprocessors = map[string]processor.Processor{}
+
+// Postprocessors contains a map of Postprocessors
 var Postprocessors = map[string]processor.Processor{}
+
+// Provisioners contains a map of Provisioners
 var Provisioners = map[string]processor.Processor{}
 
-// Register a Preprocessor
+// RegisterPreprocessor Registers a Preprocessor
 func RegisterPreprocessor(p processor.Processor) {
-	Preprocessors[KeyOf(p)] = p
+	Preprocessors[keyOf(p)] = p
 }
 
-// Register a Postprocessor
+// RegisterPostprocessor Registers a Postprocessor
 func RegisterPostprocessor(p processor.Processor) {
-	Postprocessors[KeyOf(p)] = p
+	Postprocessors[keyOf(p)] = p
 }
 
-// Register a Provisioner
+// RegisterProvisioner Registers a Provisioner
 func RegisterProvisioner(p processor.Processor) {
-	Provisioners[KeyOf(p)] = p
+	Provisioners[keyOf(p)] = p
 }
 
-func KeyOf(p processor.Processor) string {
+func keyOf(p processor.Processor) string {
 	return strings.TrimPrefix(reflect.TypeOf(p).String(), "*")
 }
