@@ -34,6 +34,7 @@ type Config struct {
 	Args                  []string            `yaml:"args"`
 	TmpDir                string              `yaml:"tmpdir"`
 	Volumes               []string            `yaml:"volumes"`
+	WorkDir               string
 }
 
 //type Options struct {
@@ -61,7 +62,7 @@ func LoadConfig(f string) (Config, error) {
 
 	r, _ := regexp.Compile(`^.*?\/\/`)
 	config.RepositoryStripped = r.ReplaceAllString(config.Repository, "")
-
+	config.WorkDir = config.TmpDir + config.RepositoryStripped
 	if config.Artifacts == "" {
 		log.Fatal("You need to specify 'artifacts_dir'")
 	}

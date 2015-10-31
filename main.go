@@ -3,15 +3,14 @@ package main
 import (
 	. "github.com/mattn/go-getopt"
 
-	_ "github.com/mudler/boson/processor/preprocessor/gentoo"
-	_ "github.com/mudler/boson/processor/provisioner/shell"
-
 	"fmt"
 	"os"
 	"time"
 
+	"github.com/mudler/boson/boson"
 	"github.com/mudler/boson/jdb"
-	"github.com/mudler/boson/shared/registry"
+	_ "github.com/mudler/boson/processor/preprocessor/gentoo"
+	_ "github.com/mudler/boson/processor/provisioner/shell"
 	"github.com/mudler/boson/shared/utils"
 	"github.com/op/go-logging"
 )
@@ -60,65 +59,41 @@ func main() {
 	// Bootstrapper for plugins
 	log.Info("Available preprocessors:")
 
-	for i := range pluginregistry.Preprocessors {
+	for i := range boson.Preprocessors {
 		log.Info("\t *" + i)
-		pluginregistry.Preprocessors[i].OnStart()
+		boson.Preprocessors[i].OnStart()
 	}
 
 	os.MkdirAll(config.TmpDir, 666)
-	workdir := config.TmpDir + config.RepositoryStripped
 	client := jdb.NewDB("./" + configurationFile + ".db")
+	builder := boson.NewBuilder(&config, client)
 
-	if _, ok := pluginregistry.Preprocessors[config.PreProcessor]; ok {
+	if _, ok := boson.Preprocessors[config.PreProcessor]; ok {
 		ticker := time.NewTicker(time.Second * time.Duration(config.PollTime))
 		for _ = range ticker.C {
-			log.Debug(" Cloning " + config.Repository + " to " + workdir)
-			if ok, _ := utils.Exists(workdir); ok == true { //if already exists, using fetch && reset
-				utils.GitAlignToUpstream(workdir)
-				currentbuild, _ := client.GetBuild("LATEST_PASSED")
-				head := utils.GitHead(workdir)
-				log.Info("Head now is at " + head)
-				if head == currentbuild.Commit {
-					log.Info("nothing to do")
-					continue
-				}
-
-				ContainerArgs, ContainerVolumes := pluginregistry.Preprocessors[config.PreProcessor].Process(workdir, &config, client)
-
-				if ok, _ := utils.ContainerDeploy(&config, ContainerArgs, ContainerVolumes, head); ok == true {
-					build := jdb.Build{Id: "LATEST_PASSED", Passed: true, Commit: head}
-					client.SaveBuild(build)
-					build = jdb.Build{Id: head, Passed: true, Commit: currentbuild.Commit}
-					client.SaveBuild(build)
-				} else {
-					build := jdb.Build{Id: "LATEST_PASSED", Passed: false, Commit: head}
-					client.SaveBuild(build)
-					build = jdb.Build{Id: head, Passed: false, Commit: currentbuild.Commit}
-					client.SaveBuild(build)
-				}
-
-				for i := range pluginregistry.Postprocessors {
-					log.Info("Postprocessor found:" + i)
-					pluginregistry.Postprocessors[i].Process(workdir, &config, client)
-				}
+			log.Debug(" Cloning " + config.Repository + " to " + config.WorkDir)
+			if ok, _ := utils.Exists(config.WorkDir); ok == true { //if already exists, using fetch && reset
+				utils.GitAlignToUpstream(config.WorkDir)
 			} else { //otherwise simply clone the repo
-				log.Info(utils.Git([]string{"clone", config.Repository, workdir}, config.TmpDir))
+				log.Info(utils.Git([]string{"clone", config.Repository, config.WorkDir}, config.TmpDir))
 			}
+
+			lastbuild, _ := client.GetBuild("LATEST_PASSED")
+			head := utils.GitHead(config.WorkDir)
+			log.Info("Head now is at " + head)
+			if head == lastbuild.Commit {
+				log.Info("nothing to do")
+				continue
+			}
+
+			builder.Run(builder.NewBuild(head, lastbuild.Commit))
+
 		}
 	} else { //Provisioning
-		for i := range config.Provisioner {
-			log.Info("\t - " + i)
-			pluginregistry.Provisioners[i].OnStart()
-			ContainerArgs, ContainerVolumes := pluginregistry.Provisioners[i].Process(workdir, &config, client)
-
-			if ok, _ := utils.ContainerDeploy(&config, ContainerArgs, ContainerVolumes, "LATEST-PROVISIONED"); ok == true {
-				log.Info("All done")
-				os.Exit(0)
-			} else {
-				log.Error("Build failed")
-				os.Exit(100)
-			}
-
+		if builder.Provision(builder.NewBuild("", "")) == true {
+			os.Exit(0)
+		} else {
+			os.Exit(42)
 		}
 	}
 

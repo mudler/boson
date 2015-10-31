@@ -1,9 +1,8 @@
 package shell
 
 import (
+	"github.com/mudler/boson/boson"
 	"github.com/mudler/boson/jdb"
-	"github.com/mudler/boson/shared/registry"
-	"github.com/mudler/boson/shared/utils"
 
 	"github.com/op/go-logging"
 )
@@ -19,11 +18,10 @@ func (s *Shell) OnStart() {
 }
 
 // Process builds a list of packages from the boson file
-func (s *Shell) Process(workdir string, config *utils.Config, db *jdb.BuildClient) ([]string, []string) {
-
-	return config.Provisioner["shell.Shell"], []string{}
+func (s *Shell) Process(build *boson.Build, db *jdb.BuildClient) ([]string, []string) { //returns args and volumes to mount
+	return build.Config.Provisioner["shell.Shell"], []string{}
 }
 
 func init() {
-	pluginregistry.RegisterProvisioner(&Shell{})
+	boson.RegisterProvisioner(&Shell{})
 }
