@@ -67,7 +67,11 @@ func main() {
 	os.MkdirAll(config.TmpDir, 666)
 	client := jdb.NewDB("./" + configurationFile + ".db")
 	builder := boson.NewBuilder(&config)
-
+	if ok, _ := utils.Exists(config.WorkDir); ok == true { //if already exists, using fetch && reset
+		utils.GitAlignToUpstream(config.WorkDir)
+	} else { //otherwise simply clone the repo
+		log.Info(utils.Git([]string{"clone", config.Repository, config.WorkDir}, config.TmpDir))
+	}
 	if _, ok := boson.Preprocessors[config.PreProcessor]; ok {
 
 		if os.Getenv("BOSON_FROM") != "" && os.Getenv("BOSON_TO") != "" {
