@@ -31,6 +31,12 @@ func GitAlignToUpstream(workdir string) {
 	log.Info(Git([]string{"reset", "--hard", "origin/master"}, workdir))
 }
 
+func GitPrevCommit(workdir string) (string, error) {
+	result, err := Git([]string{"log", "-2", `--pretty=format:"%h"`}, workdir)
+	temp := strings.Split(result, "\n")
+	return temp[1], err
+}
+
 // GitHead returns the Head of the given repository
 func GitHead(workdir string) string {
 	head, _ := Git([]string{"rev-parse", "HEAD"}, workdir)

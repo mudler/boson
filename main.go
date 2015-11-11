@@ -66,28 +66,50 @@ func main() {
 
 	os.MkdirAll(config.TmpDir, 666)
 	client := jdb.NewDB("./" + configurationFile + ".db")
-	builder := boson.NewBuilder(&config, client)
+	builder := boson.NewBuilder(&config)
 
 	if _, ok := boson.Preprocessors[config.PreProcessor]; ok {
-		ticker := time.NewTicker(time.Second * time.Duration(config.PollTime))
-		for _ = range ticker.C {
-			log.Debug(" Cloning " + config.Repository + " to " + config.WorkDir)
-			if ok, _ := utils.Exists(config.WorkDir); ok == true { //if already exists, using fetch && reset
-				utils.GitAlignToUpstream(config.WorkDir)
-			} else { //otherwise simply clone the repo
-				log.Info(utils.Git([]string{"clone", config.Repository, config.WorkDir}, config.TmpDir))
-			}
 
-			lastbuild, _ := client.GetBuild("LATEST_PASSED")
+		if os.Getenv("BOSON_FROM") != "" && os.Getenv("BOSON_TO") != "" {
+			builder.Run(builder.NewBuild(os.Getenv("BOSON_TO"), os.Getenv("BOSON_FROM")))
+		} else if os.Getenv("BOSON_FROM") != "" {
+
 			head := utils.GitHead(config.WorkDir)
-			log.Info("Head now is at " + head)
-			if head == lastbuild.Commit {
-				log.Info("nothing to do")
-				continue
+			builder.Run(builder.NewBuild(head, os.Getenv("BOSON_FROM")))
+
+		} else { //defaulting to ticker mode
+
+			ticker := time.NewTicker(time.Second * time.Duration(config.PollTime))
+			for _ = range ticker.C {
+				log.Debug(" Cloning " + config.Repository + " to " + config.WorkDir)
+				head := utils.GitHead(config.WorkDir)
+
+				if ok, _ := utils.Exists(config.WorkDir); ok == true { //if already exists, using fetch && reset
+					utils.GitAlignToUpstream(config.WorkDir)
+				} else { //otherwise simply clone the repo
+					log.Info(utils.Git([]string{"clone", config.Repository, config.WorkDir}, config.TmpDir))
+				}
+
+				lastbuild, _ := client.GetBuild("LATEST_PASSED")
+				log.Info("Head now is at " + head)
+				if head == lastbuild.Commit {
+					log.Info("nothing to do")
+					continue
+				}
+				build := builder.NewBuild(head, lastbuild.Commit)
+				if ok, _ = builder.Run(build); ok == true { //Save the build status to id
+					result := jdb.Build{Id: "LATEST_PASSED", Passed: true, Commit: build.Commit}
+					client.SaveBuild(result)
+					result = jdb.Build{Id: build.Commit, Passed: true, Commit: build.PrevCommit}
+					client.SaveBuild(result)
+				} else {
+					result := jdb.Build{Id: "LATEST_PASSED", Passed: false, Commit: build.Commit}
+					client.SaveBuild(result)
+					result = jdb.Build{Id: build.Commit, Passed: false, Commit: build.PrevCommit}
+					client.SaveBuild(result)
+				}
+
 			}
-
-			builder.Run(builder.NewBuild(head, lastbuild.Commit))
-
 		}
 	} else { //Provisioning
 		if builder.Provision(builder.NewBuild("", "")) == true {

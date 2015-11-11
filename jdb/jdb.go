@@ -6,8 +6,6 @@ import (
 )
 
 func NewDB(db string) *BuildClient {
-	//db := "./db.json"
-	// initialize empty-object json file if not found
 	if _, err := ioutil.ReadFile(db); err != nil {
 		str := "{}"
 		if err = ioutil.WriteFile(db, []byte(str), 0644); err != nil {

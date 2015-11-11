@@ -2,7 +2,7 @@
 
 [![wercker status](https://app.wercker.com/status/5d8c39eb339bbff485baab3840a4a099/m "wercker status")](https://app.wercker.com/project/bykey/5d8c39eb339bbff485baab3840a4a099)
 
-### ...easy as polling
+### Polling CI / Provision system for buildchains
 
 Boson is a CI System that uses POLL technique instead of WebHooks. Yes, a question now will pop in your mind
 
@@ -28,21 +28,22 @@ If someone commits *1fd4f077c760139886afc0da52674faebcb8a926* it will be like th
     Boson -> bc97686f0c710bf19a0f391d2cb49c7237814b73
     Repository -> bc97686f0c710bf19a0f391d2cb49c7237814b73 -> 1fd4f077c760139886afc0da52674faebcb8a926
 
-now depending on your specified PreProcessor, Boson will perform a custom action between the *bc97686f0c710bf19a0f391d2cb49c7237814b73* and *1fd4f077c760139886afc0da52674faebcb8a926* diff: for example, the Gentoo PreProcessor will check for touched ebuilds and give as result a list of packages.
+now depending on your specified PreProcessor, Boson will perform a custom action between *bc97686f0c710bf19a0f391d2cb49c7237814b73* and *1fd4f077c760139886afc0da52674faebcb8a926* commits.
+For example, the Gentoo PreProcessor will check for touched ebuilds and give as result a list of packages.
 The PreProcessor then construct and orchestrate the arguments and volumes to feed on the other phase: the spawning of a throw-away docker container.
 
 In such way, the Gentoo Preprocessor can spawn a builder machine that compile and tests your files.
 
 ### Usage
 
-Compile it as a normal go project, and then
+Compile it as a normal go project or [download the precompiled binary in the release page](https://github.com/mudler/boson/releases) and then launch it
 
 	./boson -c your-boson-file.yaml
 
 ### Boson file
 
 
-Boson file lets you define few options for now (that suited well my case)
+Boson file lets you define few options for now
 
     ---
     repository: https://github.com/yourusername/yourrepo.git
@@ -76,8 +77,13 @@ Boson file lets you define few options for now (that suited well my case)
 * **separate_artifacts**: If this enabled will be used "artifacts_dir" as parent of directory tree containing your job output for each commit
 * **tmpdir**: Specify a different temporary directory
 
+Boson with providers and commit
+
+....
+
 #### Example (my personal use case)
 
+##### Use case: Setting up a CI Buildbox for the packages pushed in the dev's overlay:
 
     ---
     repository: https://github.com/Sabayon/for-gentoo.git
@@ -98,3 +104,9 @@ The **artifacts_dir** is mounted automatically from **gentoo.Gentoo** to */usr/p
 So at each commit the image take care to test *without* carrying the actual steps of the test in a yaml file (**for now**) but instead uses the container entrypoint. I still didn't implemented a yaml testing file definition, leaving the already-defined logic in the repos: This is to mean that if the repository already runs for example on drone.io, you can also call drone itself and leave the test logic to an another engine.
 
 This allows us to track also external github repository where we don't have permission to set a webhook, and simply creating a custom docker image to implement our testing logic against it.
+
+
+
+##### Use case: Setting up a Matter Buildbox that can commit automatically to overlays
+
+...
