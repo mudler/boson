@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/mudler/boson/boson"
+	"github.com/mudler/boson/bosons"
 	"github.com/mudler/boson/jdb"
 	_ "github.com/mudler/boson/processor/preprocessor/gentoo"
 	_ "github.com/mudler/boson/processor/provisioner/shell"

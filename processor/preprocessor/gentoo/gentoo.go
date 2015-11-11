@@ -5,8 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/mudler/boson/boson"
-	"github.com/mudler/boson/jdb"
+	"github.com/mudler/boson/bosons"
 	"github.com/mudler/boson/shared/utils"
 
 	"github.com/op/go-logging"
@@ -20,21 +19,14 @@ const artifactsdir = "/usr/portage/packages"
 type Gentoo struct{}
 
 // Process builds a list of packages to emerge between commits
-func (g *Gentoo) Process(build *boson.Build, db *jdb.BuildClient) ([]string, []string) { //returns args and volumes to mount
+func (g *Gentoo) Process(build *boson.Build) ([]string, []string) { //returns args and volumes to mount
 
 	workdir := build.Config.WorkDir
 	config := build.Config
 	var ebuilds []string
 	var volumes []string
-	head := utils.GitHead(workdir)
-	lastbuild, err := db.GetBuild("LATEST_PASSED")
-	if err != nil {
-		log.Debug("Database returned no result")
-		log.Debug(err.Error())
-		//return []string{}, map[string]string{}
-	}
 	log.Info("Commit: " + build.Commit)
-	diffs, _ := utils.Git([]string{"diff", lastbuild.Commit, head, "--name-only"}, workdir)
+	diffs, _ := utils.Git([]string{"diff", build.PrevCommit, build.Commit, "--name-only"}, workdir)
 	files := strings.Split(diffs, "\n")
 
 	for _, v := range files {
@@ -55,7 +47,7 @@ func (g *Gentoo) Process(build *boson.Build, db *jdb.BuildClient) ([]string, []s
 	volumes = append(volumes, workdir+":/usr/local/portage:ro") //my volume dir to mount
 	if config.SeparateArtifacts == true {
 		//in such case, we explicitally want to separate each artifacts directory (in gentoo , our artifact is /usr/portage/packages)
-		volumes = append(volumes, config.Artifacts+"/"+head+":"+artifactsdir)
+		volumes = append(volumes, config.Artifacts+"/"+build.Commit+":"+artifactsdir)
 	} else {
 		volumes = append(volumes, config.Artifacts+":"+artifactsdir)
 	}

@@ -1,8 +1,7 @@
 package shell
 
 import (
-	"github.com/mudler/boson/boson"
-	"github.com/mudler/boson/jdb"
+	"github.com/mudler/boson/bosons"
 
 	"github.com/op/go-logging"
 )
@@ -18,7 +17,7 @@ func (s *Shell) OnStart() {
 }
 
 // Process builds a list of packages from the boson file
-func (s *Shell) Process(build *boson.Build, db *jdb.BuildClient) ([]string, []string) { //returns args and volumes to mount
+func (s *Shell) Process(build *boson.Build) ([]string, []string) { //returns args and volumes to mount
 	return build.Config.Provisioner["shell.Shell"], []string{}
 }
 
