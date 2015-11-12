@@ -79,7 +79,12 @@ func main() {
 		} else if os.Getenv("BOSON_FROM") != "" {
 
 			head := utils.GitHead(config.WorkDir)
-			builder.Run(builder.NewBuild(head, os.Getenv("BOSON_FROM")))
+			ok, err := builder.Run(builder.NewBuild(head, os.Getenv("BOSON_FROM")))
+			if ok == true && err == nil {
+				os.Exit(0)
+			} else {
+				os.Exit(42)
+			}
 
 		} else { //defaulting to ticker mode
 
