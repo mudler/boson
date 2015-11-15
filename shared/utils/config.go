@@ -56,6 +56,7 @@ func LoadConfig(f string) (Config, error) {
 	config.SeparateArtifacts = false
 	config.PollTime = 5
 	config.LogPerm = int(0644)
+	config.Artifacts = "/tmp"
 	config.TmpDir = "/var/tmp/boson/"
 	config.DockerSkipPull = false
 	err = yaml.Unmarshal(yamlFile, &config)
@@ -63,9 +64,7 @@ func LoadConfig(f string) (Config, error) {
 	r, _ := regexp.Compile(`^.*?\/\/`)
 	config.RepositoryStripped = r.ReplaceAllString(config.Repository, "")
 	config.WorkDir = config.TmpDir + config.RepositoryStripped
-	if config.Artifacts == "" {
-		log.Fatal("You need to specify 'artifacts_dir'")
-	}
+
 	if config.DockerImage == "" {
 		log.Fatal("You need to specify a Docker image 'docker_image'")
 	}

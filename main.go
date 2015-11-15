@@ -16,8 +16,12 @@ import (
 )
 
 var log = logging.MustGetLogger("boson")
-var format = logging.MustStringFormatter(
+
+var debugformat = logging.MustStringFormatter(
 	"%{color}%{time:15:04:05.000} %{shortpkg}.%{shortfunc} ▶ %{level:.4s} %{id:03x}%{color:reset} %{message}",
+)
+var normalformat = logging.MustStringFormatter(
+	"%{color}%{time:15:04:05.000} ▶ %{level:.4s} %{id:03x}%{color:reset} %{message}",
 )
 
 func main() {
@@ -38,15 +42,21 @@ func main() {
 		}
 	}
 
-	if configurationFile == "" {
+	if configurationFile == "1" {
 		fmt.Println("I can't work without a configuration file")
 		os.Exit(1)
 	}
 
 	backend2 := logging.NewLogBackend(os.Stderr, "", 0)
-	backend2Formatter := logging.NewBackendFormatter(backend2, format)
+	backend2Formatter := logging.NewBackendFormatter(backend2, debugformat)
+	backenddebug2Formatter := logging.NewBackendFormatter(backend2, normalformat)
 
-	logging.SetBackend(backend2Formatter)
+	if os.Getenv("DEBUG") == "1" {
+		logging.SetBackend(backenddebug2Formatter)
+
+	} else {
+		logging.SetBackend(backend2Formatter)
+	}
 
 	log.Info("Loading config")
 
