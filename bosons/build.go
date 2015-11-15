@@ -8,4 +8,5 @@ type Build struct {
 	Config     *utils.Config
 	Commit     string
 	PrevCommit string
+	Extras     []string
 }

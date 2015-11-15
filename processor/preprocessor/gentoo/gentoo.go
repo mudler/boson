@@ -36,6 +36,7 @@ func (g *Gentoo) Process(build *boson.Build) ([]string, []string) { //returns ar
 			if strings.Contains(v, ".ebuild") { // We just need ebuilds
 				eparts := strings.Split(strings.Replace(v, ".ebuild", "", -1), "/")
 				ebuilds = append(ebuilds, "="+eparts[0]+"/"+eparts[2])
+				build.Extras = append(build.Extras, "="+eparts[0]+"/"+eparts[2])
 			}
 		}
 	}
