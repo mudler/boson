@@ -40,6 +40,7 @@ func ContainerDeploy(config *Config, args []string, volumes []string, head strin
 	client, _ := docker.NewClient(endpoint)
 	var containerconfig *docker.Config
 	var err error
+	var status int
 	DockerImage := config.DockerImage
 
 	if config.DockerSkipPull == false {
@@ -77,7 +78,8 @@ func ContainerDeploy(config *Config, args []string, volumes []string, head strin
 			repository, repositoryok := config.Commit["repository"]
 			tag, tagok := config.Commit["tag"]
 			message, messageok := config.Commit["message"]
-			author, authorok := config.Commit["message"]
+			author, authorok := config.Commit["author"]
+			on, onok := config.Commit["on"]
 			if tagok == false {
 				tag = "latest"
 			}
@@ -87,29 +89,65 @@ func ContainerDeploy(config *Config, args []string, volumes []string, head strin
 			if authorok == false {
 				author = ""
 			}
+			if onok == false {
+				on = "always"
+			}
 			log.Info("Committing to " + repository + " \n\tTag:" + tag + " Message: " + message + " Author: " + author)
 
 			if repositoryok {
-				Image, err := client.CommitContainer(docker.CommitContainerOptions{
-					Container:  container.ID,
-					Repository: repository,
-					Message:    message,
-					Author:     author,
-					Tag:        tag,
-					Run:        containerconfig,
-				})
-				if err != nil {
-					log.Error(err.Error())
-				} else {
-					log.Info("Image committed to ID: " + Image.ID)
 
+				if onok {
+					switch on {
+					case "success":
+						if status == int(0) {
+							Image, err := client.CommitContainer(docker.CommitContainerOptions{
+								Container:  container.ID,
+								Repository: repository,
+								Message:    message,
+								Author:     author,
+								Tag:        tag,
+								Run:        containerconfig,
+							})
+							if err != nil {
+								log.Error(err.Error())
+							} else {
+								log.Info("Image committed to ID: " + Image.ID)
+							}
+						}
+					default:
+						Image, err := client.CommitContainer(docker.CommitContainerOptions{
+							Container:  container.ID,
+							Repository: repository,
+							Message:    message,
+							Author:     author,
+							Tag:        tag,
+							Run:        containerconfig,
+						})
+						if err != nil {
+							log.Error(err.Error())
+						} else {
+							log.Info("Image committed to ID: " + Image.ID)
+						}
+					}
+				} else {
+					Image, err := client.CommitContainer(docker.CommitContainerOptions{
+						Container:  container.ID,
+						Repository: repository,
+						Message:    message,
+						Author:     author,
+						Tag:        tag,
+						Run:        containerconfig,
+					})
+					if err != nil {
+						log.Error(err.Error())
+					} else {
+						log.Info("Image committed to ID: " + Image.ID)
+					}
 				}
 			} else {
 				log.Error("You haven't defined at least a repository to commit in inside your configuration file")
 			}
-
 		}
-
 		client.RemoveContainer(docker.RemoveContainerOptions{
 			ID:    container.ID,
 			Force: true,
@@ -125,7 +163,7 @@ func ContainerDeploy(config *Config, args []string, volumes []string, head strin
 		log.Error(err.Error())
 		return false, err
 	}
-	status, err := client.WaitContainer(container.ID)
+	status, err = client.WaitContainer(container.ID)
 	container, err = client.InspectContainer(container.ID) // update our container information
 	if err != nil {
 		log.Error(err.Error())
